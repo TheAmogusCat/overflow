@@ -1,6 +1,6 @@
-const { ActionRowBuilder, SlashCommandBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder} = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder} = require('discord.js')
 const { createHash } = require('crypto')
-const { adminRole } = require('../../config.json')
+const { adminRole } = require('../../json/config.json')
 const { addCode } = require('../../json.js')
 const fs = require("fs");
 
