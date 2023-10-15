@@ -132,7 +132,6 @@ module.exports = {
             let application = await getApplications()
             application = application.find(a => a.ticketChannel === interaction.channel.id)
             let member = await interaction.guild.members.fetch(application.author)
-            const adminRole = await interaction.guild.roles.fetch(config.adminRole)
 
             if (interaction.member.roles.cache.find(a => a.id === config.adminRole) === undefined) {
                 const embed = new EmbedBuilder()

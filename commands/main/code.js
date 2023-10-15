@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder} = require('discord.js')
 const { createHash } = require('crypto')
 const { adminRole } = require('../../json/config.json')
 const { addCode } = require('../../json.js')
-const fs = require("fs");
 
 module.exports = {
     data: new SlashCommandBuilder()
