@@ -10,12 +10,19 @@ module.exports = {
             .setLabel('Подать заявку')
             .setStyle(ButtonStyle.Success)
 
-        const row = new ActionRowBuilder()
-            .addComponents(application)
+        const button = new ButtonBuilder()
+            .setCustomId('code')
+            .setLabel('Пройти с кодом')
+            .setStyle(ButtonStyle.Success)
 
-        await interaction.reply({
-            content: 'Мяу :)',
+        const row = new ActionRowBuilder()
+            .addComponents(application, button)
+
+        await interaction.channel.send({
+            content: 'Подать заявку на верификацию можно кнопкой ниже',
             components: [row]
         })
+
+        await interaction.reply({ content: 'Мяу :)', ephemeral: true })
     }
 }
