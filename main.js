@@ -7,8 +7,12 @@ const {getApplications, getApplicationByMessageId} = require("./json");
 const {button} = require("./button");
 const {modal} = require("./modal");
 const {selectMenu} = require("./selectMenu");
+const {meow} = require("./meow");
+const {getUser} = require("./utils/db");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+
+meow()
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -29,7 +33,7 @@ for (const folder of commandFolders) {
     }
 }
 
-client.once(Events.ClientReady, c => {
+client.once(Events.ClientReady, async c => {
     console.log('Мяу :)')
 })
 

@@ -42,19 +42,19 @@ module.exports = {
     async addCode(code, receiver) {
         let content = JSON.parse(fs.readFileSync(__dirname + '/codes.json'))
         content.push({ code: code, receiver: receiver })
-        fs.writeFileSync(__dirname + '/codes.json', JSON.stringify(content, null, 2))
+        fs.writeFileSync(__dirname + '/json/codes.json', JSON.stringify(content, null, 2))
     },
     async getCode(code) {
-        let content = JSON.parse(fs.readFileSync(__dirname + '/codes.json'))
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/codes.json'))
         return content.find(a => a.code === code)
     },
     async getCodeByReceiver(receiver) {
-        let content = JSON.parse(fs.readFileSync(__dirname + '/codes.json'))
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/codes.json'))
         return content.find(a => a.receiver === receiver)
     },
     async removeCode(code) {
-        let content = JSON.parse(fs.readFileSync(__dirname + '/codes.json'))
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/codes.json'))
         content.splice(content.indexOf(content.find(a => a.code === code)), 1)
-        fs.writeFileSync(__dirname + '/codes.json', JSON.stringify(content, null, 2))
+        fs.writeFileSync(__dirname + '/json/codes.json', JSON.stringify(content, null, 2))
     }
 }
