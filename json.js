@@ -1,7 +1,7 @@
 const fs = require('node:fs')
 
 function getApplications() {
-    let content = fs.readFileSync(__dirname + '/applications.json')
+    let content = fs.readFileSync(__dirname + '/json/applications.json')
     return JSON.parse(content)
 }
 
@@ -9,10 +9,10 @@ module.exports = {
     async addApplication(application) {
         let content = getApplications()
         content.push(application)
-        fs.writeFileSync(__dirname + '/applications.json', JSON.stringify(content, null, 2))
+        fs.writeFileSync(__dirname + '/json/applications.json', JSON.stringify(content, null, 2))
     },
     async getApplications() {
-        let content = fs.readFileSync(__dirname + '/applications.json')
+        let content = fs.readFileSync(__dirname + '/json/applications.json')
         return JSON.parse(content)
     },
     async getApplication(application) {
@@ -27,12 +27,12 @@ module.exports = {
         let content = getApplications()
         content.splice(content.indexOf(content.find(a => a.author === applicationId)), 1)
         content.push(newApplication)
-        fs.writeFileSync(__dirname + '/applications.json', JSON.stringify(content, null, 2))
+        fs.writeFileSync(__dirname + '/json/applications.json', JSON.stringify(content, null, 2))
     },
     async deleteApplication(applicationId) {
         let content = getApplications()
         content.splice(content.indexOf(content.find(a => a.author === applicationId)), 1)
-        fs.writeFileSync(__dirname + '/applications.json', JSON.stringify(content, null, 2))
+        fs.writeFileSync(__dirname + '/json/applications.json', JSON.stringify(content, null, 2))
     },
     async getId() {
         let content = getApplications()
@@ -40,7 +40,7 @@ module.exports = {
         return id.toString()
     },
     async addCode(code, receiver) {
-        let content = JSON.parse(fs.readFileSync(__dirname + '/codes.json'))
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/codes.json'))
         content.push({ code: code, receiver: receiver })
         fs.writeFileSync(__dirname + '/json/codes.json', JSON.stringify(content, null, 2))
     },

@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
-const {getUser, addItemToMarket} = require("../../utils/db");
+const {getUser, addItemToMarket, getMarketInfo} = require("../../utils/db");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('sale')
-        .setDescription('Sale item')
+        .setName('sell')
+        .setDescription('Sell item')
         .setNameLocalizations({
             ru: 'продать'
         })
@@ -57,12 +57,24 @@ module.exports = {
             return
         }
 
-        await addItemToMarket(item, interaction.options.getString('description'), interaction.options.getInteger('price'))
+        await addItemToMarket(item, interaction.user, interaction.options.getString('description'), interaction.options.getInteger('price'))
 
         const embed = new EmbedBuilder()
             .setTitle(`Вы выставили предмет ${item.name} по цене ${interaction.options.getInteger('price')} Flow Coin!`)
             .setColor("Green")
 
         await interaction.reply({ embeds: [embed], ephemeral: true })
+
+        let info = await getMarketInfo()
+
+        let channel = await interaction.guild.channels.fetch(info.channelId)
+        let message = await channel.messages.fetch(info.messageId)
+
+        let messageEmbed = message.embeds[0]
+        if (messageEmbed.data.fields === undefined)
+            messageEmbed.data.fields = []
+        messageEmbed.data.fields.push({ name: item.name, value: `<@${interaction.user.id}>` + '\n' + interaction.options.getString('description') + '\n*' + interaction.options.getInteger('price') + ' Flow Coin*', inline: true })
+        message.components[0]['components'][0]['data']['options'].push({ label: item.name + `  ${interaction.options.getInteger('price')} Flow Coin`, value: `${messageEmbed.data.fields.length}`, description: interaction.options.getString('description')})
+        await message.edit({ embeds: [messageEmbed], components: message.components })
     }
 }
