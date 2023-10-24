@@ -93,5 +93,18 @@ module.exports = {
         } finally {
             await mongoClient.close()
         }
+    },
+    async addItemToMarket(item, description, price) {
+        try {
+            await mongoClient.connect()
+            const db = mongoClient.db('overflow')
+            const collection = db.collection('market')
+            let id = await collection.count() + 1
+            await collection.insertOne({ id: id, item: item, description: description, price: price })
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
     }
 }
