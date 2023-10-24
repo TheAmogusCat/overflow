@@ -98,7 +98,6 @@ module.exports = {
             await mongoClient.connect()
             const db = mongoClient.db('overflow')
             const collection = db.collection('market')
-            let id = await collection.count() + 1
             await collection.deleteMany({})
         } catch (e) {
             console.log(e)
@@ -111,7 +110,6 @@ module.exports = {
             await mongoClient.connect()
             const db = mongoClient.db('overflow')
             const collection = db.collection('market')
-            let id = await collection.count() + 1
             await collection.insertOne(info)
         } catch (e) {
             console.log(e)
@@ -124,7 +122,6 @@ module.exports = {
             await mongoClient.connect()
             const db = mongoClient.db('overflow')
             const collection = db.collection('market')
-            let id = await collection.count() + 1
             await collection.findOneAndUpdate({ messageId: info }, { $set: newInfo })
         } catch (e) {
             console.log(e)
@@ -137,7 +134,6 @@ module.exports = {
             await mongoClient.connect()
             const db = mongoClient.db('overflow')
             const collection = db.collection('market')
-            let id = await collection.count() + 1
             return await collection.findOne({ id: 0 })
         } catch (e) {
             console.log(e)
