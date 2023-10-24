@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
-const {getUser, addUser, editUser, getItem} = require("../../utils/db");
+const {getUser, addUser, editUser, getItem} = require('../../utils/db')
+const {adminRole} = require('../../json/config.json')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -101,6 +102,16 @@ module.exports = {
                         }))),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'money') {
+            if (interaction.member.roles.cache.find(a => a.id === adminRole) === undefined) {
+                const embed = new EmbedBuilder()
+                    .setTitle('NEVER GONNA GIVE YOU UP, NEVER GONNA LET YOU DOWN')
+                    .setColor("LuminousVividPink")
+                await interaction.reply({
+                    embeds: [embed],
+                    ephemeral: true
+                })
+                return
+            }
             if (!await getUser(interaction.options.getUser('user').id)) {
                 await addUser({
                     member: interaction.options.getUser('user').id,
@@ -118,7 +129,7 @@ module.exports = {
 
             let embed = new EmbedBuilder()
                 .setColor("Green")
-                .setTitle(`Вы выдали ${interaction.options.getInteger('amount')} Flow пользователю ${interaction.options.getUser('user').globalName}`)
+                .setTitle(`Вы выдали ${interaction.options.getInteger('amount')} Flow Coin пользователю ${interaction.options.getUser('user').globalName}`)
 
             await interaction.reply({embeds: [embed], ephemeral: true})
         }
@@ -143,6 +154,14 @@ module.exports = {
             else {
                 const embed = new EmbedBuilder()
                     .setTitle('Вам необходимо ввести хотябы 1 параметр предмета')
+                    .setColor("Red")
+                await interaction.reply({embeds: [embed], ephemeral: true})
+                return
+            }
+
+            if (!item) {
+                const embed = new EmbedBuilder()
+                    .setTitle('Данный предмет не найден!')
                     .setColor("Red")
                 await interaction.reply({ embeds: [embed], ephemeral: true })
                 return

@@ -93,6 +93,30 @@ module.exports = {
             await mongoClient.close()
         }
     },
+    async getMarketItem(item) {
+        try {
+            await mongoClient.connect()
+            const db = mongoClient.db('overflow')
+            const collection = db.collection('market')
+            return await collection.findOne({id: item})
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
+    },
+    async deleteItem(item) {
+        try {
+            await mongoClient.connect()
+            const db = mongoClient.db('overflow')
+            const collection = db.collection('market')
+            await collection.deleteOne({id: item})
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
+    },
     async clearMarket() {
         try {
             await mongoClient.connect()

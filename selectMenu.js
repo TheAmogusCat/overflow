@@ -1,6 +1,7 @@
 const config = require('./json/config.json')
 const {ButtonBuilder, ButtonStyle, ActionRowBuilder, EmbedBuilder, StringSelectMenuInteraction } = require('discord.js')
 const json = require('./json')
+const {getMarketItem, getUser, editUser, getMarketInfo, deleteItem} = require("./utils/db");
 
 
 module.exports = {
@@ -89,6 +90,55 @@ module.exports = {
             })
         }
         else if (interaction.customId === 'buy') {
+            console.log(interaction.values)
+            let id = parseInt(interaction.values[0])
+            if (id === 0)
+                id += 1
+            console.log(id)
+            let item = await getMarketItem(id)
+            console.log(item)
+
+            let user = await getUser(interaction.user.id)
+
+            if (user.balance < item.price) {
+                const embed = new EmbedBuilder()
+                    .setTitle('У вас недостаточно средств!')
+                    .setColor("Red")
+
+                await interaction.reply({ embeds: [embed], ephemeral: true })
+                return
+            }
+
+            user.inventory.push(item.item)
+            user.balance -= item.price
+            await editUser(interaction.user.id, user)
+
+            let author = await getUser(item.author.id)
+            console.log(author.inventory)
+            author.inventory.splice(author.inventory.indexOf(item.item), 1)
+            author.balance += item.price
+            await editUser(item.author.id, author)
+
+            await deleteItem(item.id)
+
+            let info = await getMarketInfo()
+
+            let message = await interaction.channel.messages.fetch(info.messageId)
+
+            message.embeds[0]['data']['fields'].splice(message.embeds[0]['data']['fields'].indexOf(message.embeds[0]['data']['fields'].find(a => a.value === `<@${item.author.id}>}` + '\n' + item.description + '\n*' + `${item.price} Flow Coin` + '*')), 1)
+            message.components[0].components[0].data.options.splice(message.components[0].components[0].data.options.indexOf(message.components[0].components[0].data.options.find(a => a.value === interaction.values[0])), 1)
+
+            console.log(message.components[0].components[0].data.options)
+            if (message.components[0].components[0].data.options.length === 0)
+                await message.edit({ embeds: message.embeds, components: [] })
+            else
+                await message.edit({ embeds: message.embeds, components: message.components })
+
+            const embed = new EmbedBuilder()
+                .setTitle('Вы преобрели товар ' + item.item.name + ' за ' + item.price + ' Flow Coin! :)')
+                .setColor("Green")
+
+            await interaction.reply({ embeds: [embed], ephemeral: true })
         }
     }
 }

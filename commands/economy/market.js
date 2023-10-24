@@ -49,7 +49,7 @@ module.exports = {
                         new StringSelectMenuOptionBuilder()
                             .setLabel(item.item.name + `  ${item.price} Flow Coin`)
                             .setDescription(item.description)
-                            .setValue(`${items.indexOf(item)}`)
+                            .setValue(`${items.indexOf(item) + 1}`)
                     )
 
                     addItemToMarket(item.item, item.author, item.description, item.price)
@@ -78,7 +78,7 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(selectMenu)
 
-        let message = await interaction.channel.send({ embeds: [embed], components: [row] })
+        let message = await interaction.channel.send({ embeds: [embed] })
 
         await addMarketInfo({ id: 0, channelId: message.channelId, messageId: message.id })
     }

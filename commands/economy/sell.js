@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder} = require('discord.js')
 const {getUser, addItemToMarket, getMarketInfo} = require("../../utils/db");
 
 module.exports = {
@@ -74,6 +74,21 @@ module.exports = {
         if (messageEmbed.data.fields === undefined)
             messageEmbed.data.fields = []
         messageEmbed.data.fields.push({ name: item.name, value: `<@${interaction.user.id}>` + '\n' + interaction.options.getString('description') + '\n*' + interaction.options.getInteger('price') + ' Flow Coin*', inline: true })
+        if (message.components[0] === undefined) {
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId('buy')
+                .addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(item.name + `  ${interaction.options.getInteger('price')} Flow Coin`)
+                        .setValue(`${messageEmbed.data.fields.length}`)
+                        .setDescription(interaction.options.getString('description'))
+                )
+
+            const row = new ActionRowBuilder().addComponents(selectMenu)
+
+            await message.edit({ embeds: [messageEmbed], components: [row] })
+            return
+        }
         message.components[0]['components'][0]['data']['options'].push({ label: item.name + `  ${interaction.options.getInteger('price')} Flow Coin`, value: `${messageEmbed.data.fields.length}`, description: interaction.options.getString('description')})
         await message.edit({ embeds: [messageEmbed], components: message.components })
     }
