@@ -71,7 +71,7 @@ module.exports = {
             await mongoClient.connect()
             const db = mongoClient.db('overflow')
             const collection = db.collection('items')
-            console.log(collection)
+            item['id'] = await collection.count() + 1
             await collection.insertOne(item)
         } catch (e) {
             console.log(e)

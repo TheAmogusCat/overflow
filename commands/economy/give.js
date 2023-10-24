@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
-const {getUser, addUser, editUser} = require("../../utils/db");
+const {getUser, addUser, editUser, getItem} = require("../../utils/db");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('give')
-        .setDescription('Give money to user')
+        .setDescription('Give')
         .setNameLocalizations(
             {
                 ru: 'выдать',
@@ -13,62 +13,159 @@ module.exports = {
         )
         .setDescriptionLocalizations(
             {
-                ru: 'Выдать деньги пользователю',
-                'es-ES': 'Dar dinero al miembro'
+                ru: 'Выдать',
+                'es-ES': 'Dar'
             }
         )
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('User')
-                .setRequired(true)
-                .setNameLocalizations(
-                    {
-                        ru: 'пользователь',
-                        'es-ES': 'usuaria'
-                    }
-                )
-                .setDescriptionLocalizations(
-                    {
-                        ru: 'Пользователь',
-                        'es-ES': 'Usaria'
-                    }
-                ))
-        .addIntegerOption(option =>
-            option.setName('amount')
-                .setDescription('Amount')
-                .setRequired(true)
-                .setNameLocalizations(
-                    {
-                        ru: 'количество',
-                        'es-ES': 'cantidad'
-                    }
-                )
-                .setDescriptionLocalizations(
-                    {
-                        ru: 'Количество',
-                        'es-ES': 'Cantidad'
-                    }
-                )),
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('money')
+                .setDescription('Give money to user')
+                .addUserOption(option =>
+                    option.setName('user')
+                        .setDescription('User')
+                        .setRequired(true)
+                        .setNameLocalizations(
+                            {
+                                ru: 'пользователь',
+                                'es-ES': 'usuaria'
+                            }
+                        )
+                        .setDescriptionLocalizations(
+                            {
+                                ru: 'Пользователь',
+                                'es-ES': 'Usaria'
+                            }
+                        ))
+                .addIntegerOption(option =>
+                    option.setName('amount')
+                        .setDescription('Amount')
+                        .setRequired(true)
+                        .setNameLocalizations(
+                            {
+                                ru: 'количество',
+                                'es-ES': 'cantidad'
+                            }
+                        )
+                        .setDescriptionLocalizations(
+                            {
+                                ru: 'Количество',
+                                'es-ES': 'Cantidad'
+                            }
+                        ))
+                .setNameLocalizations({
+                    ru: 'деньги'
+                })
+                .setDescriptionLocalizations({
+                        ru: 'Выдать деньги пользователю'
+                }))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('item')
+                .setDescription('Give item to user')
+                .setNameLocalizations({
+                    ru: 'предмет'
+                })
+                .setDescriptionLocalizations({
+                    ru: 'Выдать предмет пользователю'
+                })
+                .addStringOption(option =>
+                    option
+                        .setName('name')
+                        .setDescription('Name of an item')
+                        .setNameLocalizations({
+                            ru: 'название'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Название предмета'
+                        }))
+                .addIntegerOption(option =>
+                    option
+                        .setName('id')
+                        .setDescription('Id of an item')
+                        .setNameLocalizations({
+                            ru: 'айди'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Айди предмета'
+                        }))
+                .addUserOption(option =>
+                    option
+                        .setName('user')
+                        .setDescription('User')
+                        .setNameLocalizations({
+                            ru: 'пользователь'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Пользователь'
+                        }))),
     async execute(interaction) {
-        if (!await getUser(interaction.options.getUser('user').id)) {
-            await addUser({
-                member: interaction.options.getUser('user').id,
-                balance: '0',
-                experience: '0',
-                inventory: []
-            })
+        if (interaction.options.getSubcommand() === 'money') {
+            if (!await getUser(interaction.options.getUser('user').id)) {
+                await addUser({
+                    member: interaction.options.getUser('user').id,
+                    balance: '0',
+                    experience: '0',
+                    inventory: []
+                })
+            }
+
+            let user = await getUser(interaction.options.getUser('user').id)
+
+            user.balance += interaction.options.getInteger('amount')
+
+            await editUser(user.member, user)
+
+            let embed = new EmbedBuilder()
+                .setColor("Green")
+                .setTitle(`Вы выдали ${interaction.options.getInteger('amount')} Flow пользователю ${interaction.options.getUser('user').globalName}`)
+
+            await interaction.reply({embeds: [embed], ephemeral: true})
         }
+        else {
+            if (interaction.options.getUser('user')) {
+                if (!await getUser(interaction.options.getUser('user').id)) {
+                    await addUser({
+                        member: interaction.options.getUser('user').id,
+                        balance: '0',
+                        experience: '0',
+                        inventory: []
+                    })
+                }
+            }
 
-        let user = await getUser(interaction.options.getUser('user').id)
+            let item
 
-        user.balance += interaction.options.getInteger('amount')
+            if (interaction.options.getString('name'))
+                item = await getItem(1, interaction.options.getString('name'))
+            else if (interaction.options.getInteger('id'))
+                item = await getItem(interaction.options.getInteger('id'))
+            else {
+                const embed = new EmbedBuilder()
+                    .setTitle('Вам необходимо ввести хотябы 1 параметр предмета')
+                    .setColor("Red")
+                await interaction.reply({ embeds: [embed], ephemeral: true })
+                return
+            }
 
-        await editUser(user.member, user)
-
-        let embed = new EmbedBuilder()
-            .setColor("Green")
-            .setTitle(`Вы выдали ${interaction.options.getInteger('amount')} Flow пользователю ${interaction.options.getUser('user').globalName}`)
-
-        await interaction.reply({ embeds: [embed], ephemeral: true })
+            if (!interaction.options.getUser('user')) {
+                let user = await getUser(interaction.user.id)
+                user.inventory.push(item)
+                await editUser(interaction.user.id, user)
+                const embed = new EmbedBuilder()
+                    .setTitle(`Вы выдали себе предмет ${item.name} !`)
+                    .setColor("Green")
+                await interaction.reply({ embeds: [embed], ephemeral: true })
+            }
+            else {
+                let user = await getUser(interaction.options.getUser('user').id)
+                user.inventory.push(item)
+                await editUser(user.member, user)
+                const embed = new EmbedBuilder()
+                    .setTitle(`Вы выдали предмет ${item.name} пользователю ${interaction.options.getUser('user').globalName}!`)
+                    .setColor("Green")
+                await interaction.reply({ embeds: [embed], ephemeral: true })
+            }
+        }
     }
 }

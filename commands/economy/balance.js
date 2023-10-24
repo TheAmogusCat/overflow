@@ -31,7 +31,7 @@ module.exports = {
 
         let embed = new EmbedBuilder()
             .setColor("Green")
-            .setTitle(`Твой баланс: ${user.balance} Flow`)
+            .setTitle(`Твой баланс: ${user.balance} Flow Coin`)
 
         await interaction.reply({ embeds: [embed], ephemeral: true })
     }

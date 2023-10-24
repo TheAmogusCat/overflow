@@ -1,62 +1,113 @@
-const { SlashCommandBuilder } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder} = require('discord.js')
 const { addItem } = require('../../utils/db.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('create_item')
-        .setDescription('Create an item')
+        .setName('create')
+        .setDescription('Create')
         .setNameLocalizations({
-            ru: 'создать_предмет'
+            ru: 'создать'
         })
         .setDescriptionLocalizations({
-                ru: 'Создать предмет'
+                ru: 'Создать'
         })
-        .addStringOption(option =>
-            option
-                .setName('name')
-                .setDescription('Name of an item')
-                .setRequired(true)
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('item')
+                .setDescription('Create an item')
                 .setNameLocalizations({
-                    ru: 'название'
+                    ru: 'предмет'
                 })
                 .setDescriptionLocalizations({
-                    ru: 'Название предмета'
-                }))
-        .addStringOption(option =>
-            option
-                .setName('description')
-                .setDescription('Description of an item')
-                .setRequired(true)
+                    ru: 'Создать предмет'
+                })
+                .addStringOption(option =>
+                    option
+                        .setName('name')
+                        .setDescription('Name of an item')
+                        .setRequired(true)
+                        .setNameLocalizations({
+                            ru: 'название'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Название предмета'
+                        }))
+                .addStringOption(option =>
+                    option
+                        .setName('description')
+                        .setDescription('Description of an item')
+                        .setRequired(true)
+                        .setNameLocalizations({
+                            ru: 'описание'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Описание предмета'
+                        }))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('videocard')
+                .setDescription('Create an video card')
                 .setNameLocalizations({
-                    ru: 'описание'
+                    ru: 'видеокарту'
                 })
                 .setDescriptionLocalizations({
-                        ru: 'Описание предмета'
-                }))
-        .addStringOption(option =>
-            option
-                .setName('type')
-                .setDescription('Type of an item')
-                .setRequired(true)
-                .addChoices(
-                    { name: 'Предмет', value: 'item' },
-                    { name: 'Видеокарта', value: 'video_card' }
-                )
-                .setNameLocalizations({
-                    ru: 'тип'
+                    ru: 'Создать видеокарту'
                 })
-                .setDescriptionLocalizations({
-                    ru: 'Тип предмета'
-                })),
+                .addStringOption(option =>
+                    option
+                        .setName('name')
+                        .setDescription('Name')
+                        .setNameLocalizations({
+                            ru: 'название'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Название видеокарты'
+                        })
+                        .setRequired(true))
+                .addIntegerOption(option =>
+                    option
+                        .setName('hash-rate')
+                        .setDescription('Hash-rate in Mh/s')
+                        .setNameLocalizations({
+                            ru: 'хеш-рейт'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Хеш-рейт в Mh/s'
+                        })
+                        .setRequired(true))),
     async execute(interaction) {
-        let item = {
-            name: interaction.options.getString('name'),
-            description: interaction.options.getString('description'),
-            type: interaction.options.getString('type')
+        if (interaction.options.getSubcommand() === 'item') {
+            let item = {
+                id: 1,
+                name: interaction.options.getString('name'),
+                description: interaction.options.getString('description'),
+                type: 'item'
+            }
+
+            await addItem(item)
+
+            const embed = new EmbedBuilder()
+                .setTitle('Предмет создан')
+                .setColor("Green")
+
+            await interaction.reply({ embeds: [embed], ephemeral: true })
         }
+        else {
+            let item = {
+                id: 1,
+                name: interaction.options.getString('name'),
+                hash_rate: interaction.options.getInteger('hash-rate'),
+                type: 'videocard'
+            }
 
-        await addItem(item)
+            await addItem(item)
 
-        await interaction.reply({ content: 'Предмет добавлен в ваш инвентарь', ephemeral: true })
+            const embed = new EmbedBuilder()
+                .setTitle('Видеокарта создана')
+                .setColor("Green")
+
+            await interaction.reply({ embeds: [embed], ephemeral: true })
+        }
     }
 }
