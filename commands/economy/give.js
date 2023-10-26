@@ -115,8 +115,8 @@ module.exports = {
             if (!await getUser(interaction.options.getUser('user').id)) {
                 await addUser({
                     member: interaction.options.getUser('user').id,
-                    balance: '0',
-                    experience: '0',
+                    balance: 50,
+                    experience: 1,
                     inventory: []
                 })
             }
@@ -138,8 +138,8 @@ module.exports = {
                 if (!await getUser(interaction.options.getUser('user').id)) {
                     await addUser({
                         member: interaction.options.getUser('user').id,
-                        balance: '0',
-                        experience: '0',
+                        balance: 50,
+                        experience: 1,
                         inventory: []
                     })
                 }
@@ -169,6 +169,15 @@ module.exports = {
 
             if (!interaction.options.getUser('user')) {
                 let user = await getUser(interaction.user.id)
+                if (!user) {
+                    user = {
+                        member: interaction.user.id,
+                        balance: 50,
+                        experience: 1,
+                        inventory: []
+                    }
+                    await addUser(user)
+                }
                 user.inventory.push(item)
                 await editUser(interaction.user.id, user)
                 const embed = new EmbedBuilder()
@@ -178,6 +187,15 @@ module.exports = {
             }
             else {
                 let user = await getUser(interaction.options.getUser('user').id)
+                if (!user) {
+                    user = {
+                        member: interaction.options.getUser('user').id,
+                        balance: 50,
+                        experience: 1,
+                        inventory: []
+                    }
+                    await addUser(user)
+                }
                 user.inventory.push(item)
                 await editUser(user.member, user)
                 const embed = new EmbedBuilder()

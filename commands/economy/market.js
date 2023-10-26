@@ -8,14 +8,14 @@ module.exports = {
         .setName('market')
         .setDescription('Market')
         .setNameLocalizations({
-            ru: 'магазин'
+            ru: 'торговая_площадка'
         })
         .setDescriptionLocalizations({
-            ru: 'Магазин'
+            ru: 'Торговая площадка'
         }),
     async execute(interaction) {
         const embed = new EmbedBuilder()
-            .setTitle('Магазин')
+            .setTitle('Торговая площадка')
             .setColor("LuminousVividPink")
 
         const selectMenu = new StringSelectMenuBuilder()
@@ -25,7 +25,7 @@ module.exports = {
         if ((await getItems()).length > 0) {
             if ((await getItems())[0]['messageId'] !== undefined) {
                 const embed = new EmbedBuilder()
-                    .setTitle('Сообщение магазина уже создано!')
+                    .setTitle('Сообщение торговой площадки уже создано!')
                     .setColor("Red")
 
                 await interaction.reply({ embeds: [embed], ephemeral: true })

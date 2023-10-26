@@ -21,8 +21,8 @@ module.exports = {
         if (!await getUser(interaction.member.id)) {
             await addUser({
                 member: interaction.member.id,
-                balance: '0',
-                experience: '0',
+                balance: 50,
+                experience: 1,
                 inventory: []
             })
         }

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder} = require('discord.js')
-const {getUser, addItemToMarket, getMarketInfo} = require("../../utils/db");
+const {getUser, addItemToMarket, getMarketInfo, addUser} = require("../../utils/db");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -43,9 +43,20 @@ module.exports = {
                 .setDescriptionLocalizations({
                     ru: 'Цена'
                 })
+                .setMinValue(0)
                 .setRequired(true)),
     async execute(interaction) {
         let user = await getUser(interaction.user.id)
+        if (!user) {
+            user = {
+                member: interaction.user.id,
+                balance: 50,
+                experience: 1,
+                inventory: []
+            }
+            await addUser(user)
+        }
+
         let item = user.inventory[interaction.options.getInteger('number') - 1]
 
         if (item === undefined) {
@@ -69,11 +80,13 @@ module.exports = {
 
         let channel = await interaction.guild.channels.fetch(info.channelId)
         let message = await channel.messages.fetch(info.messageId)
+        console.log(await channel.messages.fetch(info.messageId))
 
         let messageEmbed = message.embeds[0]
         if (messageEmbed.data.fields === undefined)
             messageEmbed.data.fields = []
         messageEmbed.data.fields.push({ name: item.name, value: `<@${interaction.user.id}>` + '\n' + interaction.options.getString('description') + '\n*' + interaction.options.getInteger('price') + ' Flow Coin*', inline: true })
+        console.log(message.components)
         if (message.components[0] === undefined) {
             const selectMenu = new StringSelectMenuBuilder()
                 .setCustomId('buy')
