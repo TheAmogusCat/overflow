@@ -35,7 +35,7 @@ module.exports = {
             if (item.type === 'item')
                 embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: item.description, inline: true})
             else
-                embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: `${item.hash_rate} Mh/s`, inline: true})
+                embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: `${item.reward} USDT в день`, inline: true})
         })
 
         await interaction.reply({ embeds: [embed], ephemeral: true })
