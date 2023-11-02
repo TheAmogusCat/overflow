@@ -77,6 +77,9 @@ module.exports = {
                         })
                         .setRequired(true))),
     async execute(interaction) {
+        // TODO: Изменить хеш рейт на минимальную и максимальную прибыль с расчётом сколько будет заработок на каждой криптовалюте
+        // TODO: Сделать список криптовалют
+        // TODO: Сделать типы предметам
         if (interaction.options.getSubcommand() === 'item') {
             let item = {
                 id: 1,

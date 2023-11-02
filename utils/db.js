@@ -340,5 +340,41 @@ module.exports = {
         } finally {
             await mongoClient.close()
         }
+    },
+    async getCrypto(crypto) {
+        try {
+            await mongoClient.connect()
+            let db = mongoClient.db('overflow')
+            let collection = db.collection('crypto')
+            return collection.findOne({ name: crypto.name })
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
+    },
+    async addCrypto(crypto) {
+        try {
+            await mongoClient.connect()
+            let db = mongoClient.db('overflow')
+            let collection = db.collection('crypto')
+            await collection.insertOne(crypto)
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
+    },
+    async editCrypto(crypto) {
+        try {
+            await mongoClient.connect()
+            let db = mongoClient.db('overflow')
+            let collection = db.collection('crypto')
+            await collection.findOneAndUpdate({name: crypto.name}, {$set: crypto})
+        } catch (e) {
+            console.log(e)
+        } finally {
+            await mongoClient.close()
+        }
     }
 }

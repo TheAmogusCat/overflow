@@ -28,6 +28,8 @@ module.exports = {
             .setTitle('Инвентарь')
             .setColor("Green")
 
+        // TODO: Сделать страницы
+
         if (user.inventory.length === 0)
             embed.addFields({ name: 'Ваш инвентарь пуст!', value: ' ' })
 

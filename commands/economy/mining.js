@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, StringSelectMenuBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuOptionBuilder} = require('discord.js')
 const {getUser, editUser} = require("../../utils/db");
+const {getCryptoPrice} = require("../../utils/getCryptoCurrency");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,7 +21,26 @@ module.exports = {
                 })
                 .setDescriptionLocalizations({
                     ru: 'Начать майнинг'
-                }))
+                })
+                .addStringOption(crypto =>
+                    crypto
+                        .setName('crypto')
+                        .setDescription('Crypto')
+                        .setNameLocalizations({
+                            ru: 'криптовалюта'
+                        })
+                        .setDescriptionLocalizations({
+                            ru: 'Криптовалюта для майнинга'
+                        })
+                        .addChoices(
+                            { name: 'Bitcoin', value: 'btc' },
+                            { name: 'Litecoin', value: 'ltc' },
+                            { name: 'Ravencoin', value: 'rvn' },
+                            { name: 'Vertcoin', value: 'vtc' },
+                            { name: 'Etherium PoW', value: 'ethw' },
+                            { name: 'Etherium classic', value: 'etc' }
+                        )
+                        .setRequired(true)))
         .addSubcommand(stop =>
             stop
                 .setName('stop')
@@ -42,6 +62,7 @@ module.exports = {
                     ru: 'Показать активные устройства'
                 })),
     async execute(interaction) {
+        // TODO: Сделать асик
         if (interaction.options.getSubcommand() === 'start') {
             let user = await getUser(interaction.user.id)
             let videocards = user.inventory.filter(a => a.type === 'videocard')
@@ -62,7 +83,7 @@ module.exports = {
                 videocards.forEach(videocard => {
                     selectMenu.addOptions(new StringSelectMenuOptionBuilder()
                         .setValue(videocard.name)
-                        .setDescription(videocard.reward + ' USDT в.reward'))
+                        .setDescription(videocard.reward + ' USDT в день'))
                 })
 
                 let row = new ActionRowBuilder().addComponents(selectMenu)
@@ -80,16 +101,19 @@ module.exports = {
             if (user.mining === undefined)
                 user.mining = []
 
-            user.mining.push({videocard: videocard, timestamp: new Date()})
+            user.mining.push({videocard: videocard, crypto: interaction.options.getString('crypto'), timestamp: new Date()})
 
             user.inventory.splice(user.inventory.indexOf(videocard), 1)
 
             await editUser(user.member, user)
 
+            let reward = videocard.reward[interaction.options.getString('crypto')]
+            let usdtReward = videocard.reward[interaction.options.getString('crypto')] * await getCryptoPrice(interaction.options.getString('crypto'))
+
             let embed = new EmbedBuilder()
                 .setTitle(`Вы начали майнинг на устройстве ${videocard.name}! :)
-Прибыль устройства составляет: ${videocard.reward} USDT в день!
-Проверить баланс крипто кошелька можно с помощью команды /crypto balance`)
+Прибыль устройства составляет: ${reward} ${interaction.options.getString('crypto').toUpperCase()} или ${usdtReward} USDT в день!
+Проверить баланс крипто кошелька можно с помощью команды /крипто кошелёк`)
                 .setColor("Green")
 
             await interaction.reply({embeds: [embed], ephemeral: true})
@@ -147,7 +171,7 @@ module.exports = {
             let embed = new EmbedBuilder()
                 .setTitle(`Вы завершили майнинг на устройстве ${videocard.videocard.name}!
 Ваша общая прибыль составила: ${(videocard.videocard.reward * (new Date() - videocard.timestamp) / 1000 / 60 / 60 / 24).toFixed(3)} USDT!
-Баланс крипто кошелька можно узнать с помощью команды /crypto balance!`)
+Баланс крипто кошелька можно узнать с помощью команды /крипто кошелёк!`)
                 .setColor("Green")
 
             await interaction.reply({ embeds: [embed], ephemeral: true })

@@ -12,7 +12,7 @@ const {getUser} = require("./utils/db");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] })
 
-meow()
+//meow()
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
