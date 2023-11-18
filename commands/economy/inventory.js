@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
 const {getUser, addUser} = require("../../utils/db");
+const {getCryptoPrice} = require("../../utils/getCryptoCurrency");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,11 +34,13 @@ module.exports = {
         if (user.inventory.length === 0)
             embed.addFields({ name: 'Ваш инвентарь пуст!', value: ' ' })
 
+        let price = await getCryptoPrice('btc')
+
         user.inventory.forEach(item => {
             if (item.type === 'item')
                 embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: item.description, inline: true})
             else
-                embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: `${item.reward} USDT в день`, inline: true})
+                embed.addFields({name: user.inventory.indexOf(item) + 1 + '. ' + item.name, value: `${(item.reward.btc * price).toFixed(3)} USDT в день`, inline: true})
         })
 
         await interaction.reply({ embeds: [embed], ephemeral: true })

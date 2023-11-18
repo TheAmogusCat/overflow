@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder} = require('discord.js')
 const { addItem } = require('../../utils/db.js')
+const {getCryptoPrice} = require("../../utils/getCryptoCurrency");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -65,15 +66,15 @@ module.exports = {
                             ru: 'Название видеокарты'
                         })
                         .setRequired(true))
-                .addIntegerOption(option =>
+                .addNumberOption(option =>
                     option
-                        .setName('hash-rate')
-                        .setDescription('Hash-rate in Mh/s')
+                        .setName('maximum-reward')
+                        .setDescription('Maximum reward')
                         .setNameLocalizations({
-                            ru: 'хеш-рейт'
+                            ru: 'максимальная-награда'
                         })
                         .setDescriptionLocalizations({
-                            ru: 'Хеш-рейт в Mh/s'
+                            ru: 'Максимальная награда'
                         })
                         .setRequired(true))),
     async execute(interaction) {
@@ -97,20 +98,32 @@ module.exports = {
             await interaction.reply({ embeds: [embed], ephemeral: true })
         }
         else {
-            let item = {
-                id: 1,
-                name: interaction.options.getString('name'),
-                hash_rate: interaction.options.getInteger('hash-rate'),
-                type: 'videocard'
-            }
-
-            await addItem(item)
-
             const embed = new EmbedBuilder()
                 .setTitle('Видеокарта создана')
                 .setColor("Green")
 
             await interaction.reply({ embeds: [embed], ephemeral: true })
+
+            let max = interaction.options.getNumber('maximum-reward')
+            let price = {
+                btc: await getCryptoPrice("btc"),
+                rvn: await getCryptoPrice("rvn"),
+                etc: await getCryptoPrice("etc"),
+            }
+            console.log(price)
+            let reward = {
+                btc: max / price['btc'],
+                rvn: (max / 100 * 53.2258065) / price['rvn'],
+                etc: (max / 100 * 22.5806452) / price['etc']
+            }
+            let item = {
+                id: 1,
+                name: interaction.options.getString('name'),
+                reward: reward,
+                type: 'videocard'
+            }
+
+            await addItem(item)
         }
     }
 }

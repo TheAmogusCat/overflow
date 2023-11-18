@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder} = require('discord.js')
 const { adminRole } = require('../../json/config.json')
 
 module.exports = {
@@ -69,7 +69,10 @@ module.exports = {
             embed = new EmbedBuilder()
                 .setTitle(text)
                 .setColor(color)
-                .addFields([
+                .addFields(
+                    { name: 'Появились вопросы?', value: 'Создайте тикет и в ближайшее время вам ответит администрация.' }
+                )
+                /*.addFields([
                     { name: 'Основные правила', value: ' ' },
                     { name: '1.1', value: 'Запрещено использование ненормативной лексики.\nНаказание: Мут на 1 час' },
                     { name: '1.2', value: 'Запрещено оскорбление других пользователей \nНаказание: Мут на 2 часа' },
@@ -84,10 +87,17 @@ module.exports = {
                     { name: 'Голосовые каналы', value: ' ' },
                     { name: '3.1', value: 'Запрещается воспроизводить оглушающие звуки намеренно. \nНаказание: Мут на 15 минут' },
                     { name: '3.2', value: 'Запрещена демонстрация 18+ контента \nНаказание: Мут на 15 минут' }
-                ])
+                ])*/
+
+        let button = new ButtonBuilder()
+            .setCustomId('create_ticket')
+            .setLabel('Создать тикет')
+            .setStyle(ButtonStyle.Primary)
+
+        let row = new ActionRowBuilder().addComponents(button)
 
         if (!ephemeral) {
-            await interaction.channel.send({ embeds: [embed] })
+            await interaction.channel.send({ embeds: [embed], components: [row] })
             await interaction.reply({ content: 'Сообщение отправлено', ephemeral: true })
         }
         else

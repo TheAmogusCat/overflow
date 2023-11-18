@@ -346,10 +346,9 @@ module.exports = {
             await mongoClient.connect()
             let db = mongoClient.db('overflow')
             let collection = db.collection('crypto')
-            return collection.findOne({ name: crypto.name })
+            return await collection.findOne({ name: crypto })
         } catch (e) {
             console.log(e)
-        } finally {
             await mongoClient.close()
         }
     },
@@ -361,7 +360,6 @@ module.exports = {
             await collection.insertOne(crypto)
         } catch (e) {
             console.log(e)
-        } finally {
             await mongoClient.close()
         }
     },

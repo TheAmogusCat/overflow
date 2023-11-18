@@ -4,6 +4,7 @@ const json = require('./json')
 const {getMarketItem, getUser, editUser, getMarketInfo, deleteItem, addUser, buyShopItem, getShopItem, getShopInfo,
     getCollectionName
 } = require("./utils/db");
+const {getCryptoPrice} = require("./utils/getCryptoCurrency");
 
 
 module.exports = {
@@ -209,6 +210,82 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setTitle('Вы приобрели товар ' + item.item.name + ' за ' + item.price + ' Flow Coin! :)')
+                .setColor("Green")
+
+            await interaction.reply({ embeds: [embed], ephemeral: true })
+        }
+        else if (interaction.customId === 'mining_start') {
+            let videocardName = interaction.values[0]
+            let user = await getUser(interaction.user.id)
+            let videocard = user.inventory.find(a => a.name === videocardName)
+            let crypto = interaction.message.components[0].components[0].data.options[0].description.split(' ')[1].toLowerCase()
+
+            if (user.mining === undefined)
+                user.mining = []
+
+            user.mining.push({videocard: videocard, crypto: crypto, timestamp: new Date()})
+
+            user.inventory.splice(user.inventory.indexOf(videocard), 1)
+
+            await editUser(user.member, user)
+
+            let reward = videocard.reward[crypto]
+            let usdtReward = videocard.reward[crypto] * await getCryptoPrice(crypto)
+            console.log(videocard.reward, await getCryptoPrice(crypto))
+
+            let embed = new EmbedBuilder()
+                .setTitle(`Вы начали майнинг на устройстве ${videocard.name}! :)
+Прибыль устройства составляет: ${reward} ${crypto.toUpperCase()} или ${usdtReward} USDT в день!
+Проверить баланс крипто кошелька можно с помощью команды /крипто кошелёк`)
+                .setColor("Green")
+
+            await interaction.reply({embeds: [embed], ephemeral: true})
+        }
+        else if (interaction.customId === 'mining_stop') {
+            let user = await getUser(interaction.user.id)
+
+            let videocard = interaction.values[0]
+
+            if (videocard.indexOf('(') !== -1) {
+                let counter = 0
+                let index = parseInt(videocard.split('(')[1].split(')')[0])
+                user.mining.forEach(card => {
+                    if (card.videocard.name === videocard.split(' (')[0]) {
+                        counter++
+                        if (counter === index) {
+                            videocard = card
+                            return
+                        }
+                    }
+                })
+            }
+            else
+                videocard = user.mining.find(a => a.videocard.name === videocard)
+
+            user.mining.splice(user.mining.indexOf(videocard), 1)
+            user.inventory.push(videocard)
+
+            if (user.crypto === undefined)
+                user.crypto = {
+                    USDT: 0.0
+                }
+
+            if (videocard.last_check === undefined)
+                videocard.last_check = videocard.timestamp
+
+            console.log(videocard.videocard.reward[videocard.crypto])
+            console.log((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
+
+            let reward = videocard.videocard.reward[videocard.crypto] * ((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
+
+            user.crypto.USDT = user.crypto.USDT + reward
+
+            await editUser(interaction.user.id, user)
+
+            let embed = new EmbedBuilder()
+                .setTitle(`Вы завершили майнинг на устройстве ${videocard.videocard.name}!
+Ваша общая прибыль составила: ${(videocard.videocard.reward * (new Date() - videocard.timestamp) / 1000 / 60 / 60 / 24).toFixed(3)} USDT!
+Баланс крипто кошелька можно узнать с помощью команды /крипто кошелёк!`)
                 .setColor("Green")
 
             await interaction.reply({ embeds: [embed], ephemeral: true })

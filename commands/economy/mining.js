@@ -34,10 +34,7 @@ module.exports = {
                         })
                         .addChoices(
                             { name: 'Bitcoin', value: 'btc' },
-                            { name: 'Litecoin', value: 'ltc' },
                             { name: 'Ravencoin', value: 'rvn' },
-                            { name: 'Vertcoin', value: 'vtc' },
-                            { name: 'Etherium PoW', value: 'ethw' },
                             { name: 'Etherium classic', value: 'etc' }
                         )
                         .setRequired(true)))
@@ -79,20 +76,24 @@ module.exports = {
             if (videocards.length > 1) {
                 let selectMenu = new StringSelectMenuBuilder()
                     .setCustomId('mining_start')
+                    .setPlaceholder('Выберите устройство для майнинга')
+
+                let meow = []
 
                 videocards.forEach(videocard => {
-                    selectMenu.addOptions(new StringSelectMenuOptionBuilder()
-                        .setValue(videocard.name)
-                        .setDescription(videocard.reward + ' USDT в день'))
+                    console.log(videocard)
+                    if (meow.find(a => a === videocard.name) === undefined) {
+                        meow.push(videocard.name)
+                        selectMenu.addOptions(new StringSelectMenuOptionBuilder()
+                            .setLabel(videocard.name)
+                            .setValue(videocard.name)
+                            .setDescription(videocard.reward[interaction.options.getString('crypto')] + ' ' + interaction.options.getString('crypto').toUpperCase() + ' в день'))
+                    }
                 })
 
                 let row = new ActionRowBuilder().addComponents(selectMenu)
 
-                let embed = new EmbedBuilder()
-                    .setTitle('Выберите видеокарту')
-                    .setColor("Green")
-
-                await interaction.reply({embeds: [embed], components: [row], ephemeral: true})
+                await interaction.reply({ components: [row], ephemeral: true})
                 return
             }
 
@@ -112,7 +113,7 @@ module.exports = {
 
             let embed = new EmbedBuilder()
                 .setTitle(`Вы начали майнинг на устройстве ${videocard.name}! :)
-Прибыль устройства составляет: ${reward} ${interaction.options.getString('crypto').toUpperCase()} или ${usdtReward} USDT в день!
+Прибыль устройства составляет: ${reward.toFixed(5)} ${interaction.options.getString('crypto').toUpperCase()} или ${usdtReward.toFixed(3)} USDT в день!
 Проверить баланс крипто кошелька можно с помощью команды /крипто кошелёк`)
                 .setColor("Green")
 
@@ -132,37 +133,54 @@ module.exports = {
             else if (user.mining.length > 1) {
                 let selectMenu = new StringSelectMenuBuilder()
                     .setCustomId('mining_stop')
+                    .setPlaceholder('Выберите устройство')
+
+                let videocards = []
 
                 user.mining.forEach(videocard => {
+                    if (videocards.find(a => a === videocard.videocard.name)) {
+                        let counter = 0
+                        videocards.forEach(card => {
+                            if (card === videocard.videocard.name)
+                                counter++
+                        })
+                        videocards.push(videocard.videocard.name)
+                        videocard.videocard.name = videocard.videocard.name + ' (' + counter + ')'
+                    }
+                    else
+                        videocards.push(videocard.videocard.name)
+
+                    console.log(videocard.videocard.name)
+
                     selectMenu.addOptions(new StringSelectMenuOptionBuilder()
-                        .setValue(videocard.name)
-                        .setDescription(videocard.reward + ' USDT в день'))
+                        .setLabel(videocard.videocard.name)
+                        .setValue(videocard.videocard.name)
+                        .setDescription(videocard.videocard.reward[videocard.crypto] + ' ' + videocard.crypto + ' в день'))
                 })
 
                 let row = new ActionRowBuilder().addComponents(selectMenu)
 
-                let embed = new EmbedBuilder()
-                    .setTitle('Выберите устройство')
-                    .setColor("LuminousVividPink")
-
-                await interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
+                await interaction.reply({ components: [row], ephemeral: true })
                 return
             }
 
             let videocard = user.mining[0]
 
             user.mining.splice(0, 1)
+            user.inventory.push(videocard)
 
-            if (user.crypto === undefined) {
+            if (user.crypto === undefined)
                 user.crypto = {
                     USDT: 0.0
                 }
-            }
-            if (videocard.last_check === undefined) {
-                videocard.last_check = videocard.timestamp
-            }
 
-            let reward = parseFloat((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
+            if (videocard.last_check === undefined)
+                videocard.last_check = videocard.timestamp
+
+            console.log(videocard.videocard.reward[videocard.crypto])
+            console.log((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
+
+            let reward = videocard.videocard.reward[videocard.crypto] * ((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
 
             user.crypto.USDT = user.crypto.USDT + reward
 
@@ -195,12 +213,20 @@ module.exports = {
             user.mining.forEach(videocard => {
                 if (videocard.last_check === undefined)
                     videocard.last_check = videocard.timestamp
-                videocard.last_check = (new Date() - videocard.last_check) / 1000 / 60 < 5 ? videocard.last_check : new Date()
-                console.log((new Date() - videocard.last_check) / 1000 / 60)
-                console.log((videocard.last_check - videocard.timestamp) / 1000 / 60)
+
+                console.log(videocard)
+
+                if ((new Date() - videocard.last_check) / 1000 / 60 > 5) {
+                    videocard.last_check = new Date()
+
+                    let reward = parseFloat((new Date() - videocard.last_check) / 1000 / 60 / 60 / 24)
+
+                    user.crypto.USDT = user.crypto.USDT + reward
+                }
+
                 embed.addFields({
                     name: videocard.videocard.name,
-                    value: `Общий заработок: ${(videocard.videocard.reward * (new Date() - videocard.last_check) / 1000 / 60 / 60 / 24).toFixed(3)}`
+                    value: `Общий заработок: ${(videocard.videocard.reward[videocard.crypto] * ((new Date() - videocard.timestamp) / 1000 / 60 / 60 / 24)).toFixed(5)} ${videocard.crypto.toUpperCase()}`
                 })
             })
 

@@ -1,4 +1,4 @@
-const { Client, Collection, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, Events, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, GatewayIntentBits, ActionRowBuilder, PermissionsBitField } = require('discord.js')
+const { Client, Collection, Partials, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, Events, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, GatewayIntentBits, ActionRowBuilder, PermissionsBitField } = require('discord.js')
 const fs = require('node:fs')
 const path = require('node:path')
 const config = require('./json/config.json')
@@ -9,10 +9,12 @@ const {modal} = require("./modal");
 const {selectMenu} = require("./selectMenu");
 const {meow} = require("./meow");
 const {getUser} = require("./utils/db");
+const {verificationChannel} = require('./json/config.json')
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction], })
 
-//meow()
+meow()
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -37,96 +39,49 @@ client.once(Events.ClientReady, async c => {
     console.log('Мяу :)')
 })
 
-async function logAccept(administrator, member, guild) {
-    let channel = await guild.channels.fetch(config.logChannel)
-
-    let adminAvatar = 'https://cdn.discordapp.com/avatars/' + administrator.user.id + '/' + administrator.user.avatar
-    let avatar = 'https://cdn.discordapp.com/avatars/' + member.user.id + '/' + member.user.avatar
-
-    const embed = new EmbedBuilder()
-        .setColor("Green")
-        .setAuthor({ name: `Администратор ${administrator.displayName} одобрил заявку пользователя ${member.displayName}`, iconURL: avatar })
-        .setFooter({ text: administrator.displayName, iconURL: adminAvatar })
-
-    await channel.send({ embeds: [embed] })
-}
-
-async function logDeny(administrator, member, guild, reason) {
-    let channel = await guild.channels.fetch(config.logChannel)
-
-    let adminAvatar = 'https://cdn.discordapp.com/avatars/' + administrator.user.id + '/' + administrator.user.avatar
-    let avatar = 'https://cdn.discordapp.com/avatars/' + member.user.id + '/' + member.user.avatar
-
-    const embed = new EmbedBuilder()
-        .setColor("Red")
-        .setAuthor({ name: `Администратор ${administrator.displayName} отклонил заявку пользователя ${member.displayName}`, iconURL: avatar })
-        .addFields(
-            { name: 'Причина отклонения', value: reason }
-        )
-        .setFooter({ text: administrator.displayName, iconURL: adminAvatar })
-
-    await channel.send({ embeds: [embed] })
-}
-
-async function logCreateTicket(administrator, member, guild) {
-    let channel = await guild.channels.fetch(config.logChannel)
-
-    let adminAvatar = 'https://cdn.discordapp.com/avatars/' + administrator.user.id + '/' + administrator.user.avatar
-    let avatar = 'https://cdn.discordapp.com/avatars/' + member.user.id + '/' + member.user.avatar
-
-    const embed = new EmbedBuilder()
-        .setColor("Green")
-        .setAuthor({ name: `Администратор ${administrator.displayName} создал тикет с пользователем ${member.displayName}`, iconURL: avatar })
-        .setFooter({ text: administrator.displayName, iconURL: adminAvatar })
-
-    await channel.send({ embeds: [embed] })
-}
-
-async function logCloseTicket(administrator, member, guild) {
-    let channel = await guild.channels.fetch(config.logChannel)
-
-    let adminAvatar = 'https://cdn.discordapp.com/avatars/' + administrator.user.id + '/' + administrator.user.avatar
-    let avatar = 'https://cdn.discordapp.com/avatars/' + member.user.id + '/' + member.user.avatar
-
-    const embed = new EmbedBuilder()
-        .setColor("Green")
-        .setAuthor({ name: `Администратор ${administrator.displayName} закрыл тикет с пользователем ${member.displayName}`, iconURL: avatar })
-        .setFooter({ text: administrator.displayName, iconURL: adminAvatar })
-
-    await channel.send({ embeds: [embed] })
-}
-
 client.on(Events.InteractionCreate, async interaction => {
-    if (interaction.isButton()) {
-        await button(interaction)
-    }
-    else if (interaction.isModalSubmit()) {
-        await modal(interaction)
-    }
-    else if (interaction.isStringSelectMenu()) {
-        await selectMenu(interaction)
-    }
-    else {
-        const command = interaction.client.commands.get(interaction.commandName);
+    try {
+        if (interaction.isButton()) {
+            await button(interaction)
+        } else if (interaction.isModalSubmit()) {
+            await modal(interaction)
+        } else if (interaction.isStringSelectMenu()) {
+            await selectMenu(interaction)
+        } else {
+            const command = interaction.client.commands.get(interaction.commandName)
 
-        if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
-            return;
-        }
+            if (!command) {
+                console.error(`No command matching ${interaction.commandName} was found.`)
+                return;
+            }
 
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({
-                    content: 'There was an error while executing this command!',
-                    ephemeral: true
-                });
-            } else {
-                await interaction.reply({content: 'There was an error while executing this command!', ephemeral: true});
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                console.error(error);
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({
+                        content: 'There was an error while executing this command!',
+                        ephemeral: true
+                    });
+                } else {
+                    await interaction.reply({
+                        content: 'There was an error while executing this command!',
+                        ephemeral: true
+                    });
+                }
             }
         }
+    } catch (e) {
+        console.log(e)
+    }
+})
+
+client.on('messageReactionAdd', async (reaction, user) => {
+    if (reaction.message.channel.id === verificationChannel) {
+        let role = await reaction.message.guild.roles.fetch('1162074275046510724')
+        let member = await reaction.message.guild.members.fetch(user.id)
+        await member.roles.add(role)
     }
 })
 

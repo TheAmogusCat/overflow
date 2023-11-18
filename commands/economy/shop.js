@@ -185,7 +185,7 @@ module.exports = {
                 return
             }
 
-            let description = ['item', 'pet_supplies', 'pet'].includes(item.type) ? item.description : item.hash_rate.toString() + ' Mh/s'
+            let description = ['item', 'pet_supplies', 'pet'].includes(item.type) ? item.description : item.reward.btc.toString() + ' BTC в день'
             let shopItem = {
                 id: 1,
                 item: item,

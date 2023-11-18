@@ -56,5 +56,19 @@ module.exports = {
         let content = JSON.parse(fs.readFileSync(__dirname + '/json/codes.json'))
         content.splice(content.indexOf(content.find(a => a.code === code)), 1)
         fs.writeFileSync(__dirname + '/json/codes.json', JSON.stringify(content, null, 2))
+    },
+    async addTicket(ticket) {
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/tickets.json'))
+        content.push(ticket)
+        fs.writeFileSync(__dirname + '/json/tickets.json', JSON.stringify(content, null, 2))
+    },
+    async getTicket(channel) {
+        let content = JSON.parse(fs.readFileSync(__dirname + '/json/tickets.json'))
+        return content.find(a => a.channel === channel)
+    },
+    async closeTicket(ticket) {
+        let content = JSON.parse(fs.readFileSync(__dirname+ '/json/tickets.json'))
+        content.splice(content.indexOf(content.find(a => a.channel === ticket)), 1)
+        fs.writeFileSync(__dirname + '/json/tickets.json', JSON.stringify(content, null, 2))
     }
 }

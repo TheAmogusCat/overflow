@@ -1,7 +1,10 @@
 const json = require('./json')
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, PermissionsBitField, ButtonBuilder, ButtonStyle, ButtonInteraction } = require('discord.js')
 const config = require('./json/config.json')
-const {getApplications} = require('./json')
+const {getApplications} = require('./json.js')
+const {logCreateTicket} = require("./log.js");
+const {addTicket, closeTicket, getTicket} = require("./json");
+const {logCloseTicket} = require("./log");
 
 
 module.exports = {
@@ -124,7 +127,7 @@ module.exports = {
 
             const adminRole = await interaction.guild.roles.fetch(config.adminRole)
 
-            await logCreateTicket(interaction.member, member, interaction.guild)
+            await logCreateTicket(member, interaction.guild, interaction.member)
 
             await channel.send({ content: `<@${application.author}> ${adminRole}`, components: [row] })
         }
@@ -161,6 +164,65 @@ module.exports = {
             modal.addComponents(row)
 
             await interaction.showModal(modal)
+        }
+        else if (interaction.customId === 'create_ticket') {
+            let member = interaction.member
+            let channel = await interaction.guild.channels.create({
+                name: '✧🎫୧・Тикет',
+                permissionOverwrites: [
+                    {
+                        id: config.adminRole,
+                        allow: [PermissionsBitField.Flags.SendMessages]
+                    },
+                    {
+                        id: interaction.user.id,
+                        allow: [PermissionsBitField.Flags.SendMessages]
+                    }
+                ]
+            })
+
+            let ticket = {
+                author: interaction.user.id,
+                channel: channel.id
+            }
+
+            await addTicket(ticket)
+
+            const button = new ButtonBuilder()
+                .setCustomId('close_ticket')
+                .setLabel('Закрыть тикет')
+                .setStyle(ButtonStyle.Success)
+
+            const row = new ActionRowBuilder().addComponents(button)
+
+            const adminRole = await interaction.guild.roles.fetch(config.adminRole)
+
+            await logCreateTicket(member, interaction.guild)
+
+            await channel.send({ content: `<@${interaction.user.id}> ${adminRole}`, components: [row] })
+
+            let embed = new EmbedBuilder()
+                .setTitle('Вы создали тикет!')
+                .setColor("Green")
+
+            await interaction.reply({ embeds: [embed], ephemeral: true })
+        }
+        else if (interaction.customId === 'close_ticket') {
+            let ticket = await getTicket(interaction.channel.id)
+            let member = await interaction.guild.members.fetch(ticket.author)
+
+            if (interaction.member.roles.cache.find(a => a.id === config.adminRole) !== undefined) {
+                await logCloseTicket(member, interaction.guild, interaction.member)
+                await closeTicket(interaction.channel.id)
+
+                await interaction.channel.delete()
+                return
+            }
+
+            await logCloseTicket(member, interaction.guild)
+            await closeTicket(interaction.channel.id)
+
+            await interaction.channel.delete()
         }
     }
 }
